@@ -1,0 +1,30 @@
+name: Bug report
+description: Report a problem with the desktop wrapper
+body:
+  - type: markdown
+    attributes:
+      value: "Do not include account details, cookies, Netflix screenshots, or DRM license traffic."
+  - type: input
+    id: version
+    attributes:
+      label: StreamNest version
+    validations:
+      required: true
+  - type: input
+    id: system
+    attributes:
+      label: Distribution and desktop environment
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true

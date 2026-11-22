@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=Nflix Desktop
+GenericName=Netflix Web App
+Comment=Unofficial desktop access to Netflix
+Exec=nflix-desktop
+TryExec=nflix-desktop
+Icon=io.github.nflixdesktop
+Terminal=false
+Type=Application
+Categories=AudioVideo;Video;
+StartupNotify=true
+StartupWMClass=io.github.nflixdesktop
+Keywords=video;streaming;netflix;

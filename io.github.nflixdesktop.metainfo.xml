@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.nflixdesktop</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <name>Nflix Desktop</name>
+  <summary>Unofficial desktop access to Netflix</summary>
+  <developer id="io.github.nflixdesktop">
+    <name>nflix-desktop contributors</name>
+  </developer>
+  <url type="homepage">https://github.com/Shinkhal/NFlix</url>
+  <url type="bugtracker">https://github.com/Shinkhal/NFlix/issues</url>
+  <url type="vcs-browser">https://github.com/Shinkhal/NFlix</url>
+  <description>
+    <p>An unofficial Linux desktop wrapper that opens Netflix in a dedicated window. This project is independent and is not affiliated with or endorsed by Netflix, Inc.</p>
+    <p>Requires a Netflix account and an internet connection. Playback depends on the Qt WebEngine build, codecs, DRM components, and Netflix service availability. The application does not provide Netflix content or offline downloads.</p>
+  </description>
+  <launchable type="desktop-id">io.github.nflixdesktop.desktop</launchable>
+  <icon type="stock">io.github.nflixdesktop</icon>
+  <categories>
+    <category>AudioVideo</category>
+  </categories>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="0.2.0" date="2026-11-22">
+      <description><p>First PySide6 and Qt WebEngine release.</p></description>
+    </release>
+  </releases>
+</component>
