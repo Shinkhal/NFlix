@@ -1,0 +1,93 @@
+name: nflix-desktop
+version: '0.2.0'
+summary: Unofficial Linux desktop wrapper for Netflix
+description: |
+  Nflix Desktop is an unofficial Linux desktop wrapper that opens
+  Netflix in a dedicated PySide6 / Qt WebEngine window.  It is not
+  affiliated with or endorsed by Netflix, Inc.  A Netflix account
+  and internet connection are required.  DRM playback depends on
+  the Qt WebEngine build and available codecs.
+license: MIT
+icon: assets/icon-512.png
+
+base: core24
+confinement: strict
+grade: stable
+
+architectures:
+  - build-on: [amd64]
+
+apps:
+  nflix-desktop:
+    command: bin/nflix-desktop
+    desktop: usr/share/applications/io.github.nflixdesktop.desktop
+    extensions: [gnome]
+    plugs:
+      - desktop
+      - desktop-legacy
+      - wayland
+      - x11
+      - opengl
+      - network
+      - network-bind
+      - audio-playback
+      - browser-support
+    environment:
+      QTWEBENGINE_DICTIONARIES_PATH: $SNAP/usr/share/hunspell
+
+parts:
+  nflix-desktop:
+    plugin: python
+    source: .
+    python-packages:
+      - PySide6==6.12.0
+    build-packages:
+      - python3-dev
+    stage-packages:
+      - libgl1
+      - libegl1
+      - libgles2
+      - libx11-6
+      - libxkbcommon0
+      - libxkbcommon-x11-0
+      - libxcomposite1
+      - libxdamage1
+      - libxrandr2
+      - libxrender1
+      - libxtst6
+      - libnss3
+      - libnspr4
+      - libasound2t64
+      - libpulse0
+      - libfontconfig1
+      - libdbus-1-3
+      - libdrm2
+      - libgbm1
+      - libxcb1
+      - libxcb-glx0
+      - libxcb-keysyms1
+      - libxcb-image0
+      - libxcb-shm0
+      - libxcb-icccm4
+      - libxcb-render-util0
+      - libxcb-xinerama0
+      - libxcb-xkb1
+      - libxcb-randr0
+      - libxcb-shape0
+      - libxcb-sync1
+      - libxcb-xfixes0
+      - libxcb-render0
+      - libxcb-cursor0
+
+  desktop-file:
+    plugin: dump
+    source: .
+    organize:
+      io.github.nflixdesktop.desktop: usr/share/applications/io.github.nflixdesktop.desktop
+      io.github.nflixdesktop.metainfo.xml: usr/share/metainfo/io.github.nflixdesktop.metainfo.xml
+      assets/icon-512.png: usr/share/icons/hicolor/512x512/apps/io.github.nflixdesktop.png
+      assets/icon-48.png: usr/share/icons/hicolor/48x48/apps/io.github.nflixdesktop.png
+    stage:
+      - usr/share/applications/io.github.nflixdesktop.desktop
+      - usr/share/metainfo/io.github.nflixdesktop.metainfo.xml
+      - usr/share/icons/hicolor/*/apps/io.github.nflixdesktop.png

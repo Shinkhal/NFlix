@@ -43,3 +43,9 @@ input_file = "nflix_desktop.py"
 exec_directory = "dist"
 icon = "assets/icon-512.png"
 mode = "standalone"
+
+[project.optional-dependencies]
+test = ["pytest>=7"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

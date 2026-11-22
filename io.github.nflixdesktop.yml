@@ -1,0 +1,49 @@
+app-id: io.github.nflixdesktop
+runtime: org.kde.Platform
+runtime-version: '6.8'
+sdk: org.kde.Sdk
+command: nflix-desktop
+
+finish-args:
+  # X11 + Wayland display
+  - --share=ipc
+  - --socket=x11
+  - --socket=wayland
+  - --socket=fallback-x11
+  # Network access (Netflix streaming)
+  - --share=network
+  # GPU acceleration for video playback
+  - --device=dri
+  # PulseAudio for sound
+  - --socket=pulseaudio
+  # Persistent data for cookies, cache, and settings
+  - --persist=.local/share/nflix-desktop
+  - --persist=.cache/nflix-desktop
+
+modules:
+  # PySide6 is installed first so it is cached across app-only rebuilds.
+  - name: python3-pyside6
+    buildsystem: simple
+    build-commands:
+      - pip3 install --no-build-isolation --prefix=/app PySide6==6.12.0
+    # For a fully offline Flathub build, replace this module with
+    # vendored wheel sources and their sha256 checksums.  See:
+    # https://docs.flathub.org/docs/for-app-authors/requirements#python
+    sources: []
+
+  - name: nflix-desktop
+    buildsystem: simple
+    build-commands:
+      - pip3 install --no-build-isolation --prefix=/app --no-deps .
+      - install -Dm644 io.github.nflixdesktop.desktop /app/share/applications/io.github.nflixdesktop.desktop
+      - install -Dm644 io.github.nflixdesktop.metainfo.xml /app/share/metainfo/io.github.nflixdesktop.metainfo.xml
+      - install -Dm644 assets/icon-48.png /app/share/icons/hicolor/48x48/apps/io.github.nflixdesktop.png
+      - install -Dm644 assets/icon-512.png /app/share/icons/hicolor/512x512/apps/io.github.nflixdesktop.png
+      - install -Dm644 LICENSE /app/share/licenses/nflix-desktop/LICENSE
+      - install -Dm644 THIRD_PARTY_NOTICES.md /app/share/licenses/nflix-desktop/THIRD_PARTY_NOTICES.md
+      # Ensure desktop file uses the bare command name inside the sandbox
+      - sed -i 's|^Exec=.*|Exec=nflix-desktop|; s|^TryExec=.*|TryExec=nflix-desktop|'
+            /app/share/applications/io.github.nflixdesktop.desktop
+    sources:
+      - type: dir
+        path: .
