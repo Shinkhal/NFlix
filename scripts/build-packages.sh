@@ -16,6 +16,7 @@ esac
 mkdir -p "$OUTPUT_DIR"
 PACKAGE_ROOT=$(mktemp -d "${TMPDIR:-/tmp}/nflix-packages.XXXXXX")
 RPM_ROOT="$PACKAGE_ROOT/rpm"
+RPM_BUILDROOT="$RPM_ROOT/BUILDROOT/nflix-desktop-$VERSION-1.$RPM_ARCH"
 trap 'rm -rf "$PACKAGE_ROOT"' EXIT HUP INT TERM
 
 install -d "$PACKAGE_ROOT/deb/usr/bin" \
@@ -47,21 +48,21 @@ Description: Unofficial Linux desktop wrapper for Netflix
 EOF
 dpkg-deb --build --root-owner-group "$PACKAGE_ROOT/deb" "$OUTPUT_DIR/nflix-desktop-$VERSION-linux-$ARCH.deb" >/dev/null
 
-install -d "$RPM_ROOT/BUILD" "$RPM_ROOT/BUILDROOT" "$RPM_ROOT/RPMS/$RPM_ARCH" "$RPM_ROOT/SOURCES" "$RPM_ROOT/SPECS" "$RPM_ROOT/SRPMS"
-install -d "$RPM_ROOT/BUILDROOT/usr/bin" "$RPM_ROOT/BUILDROOT/usr/lib/nflix-desktop" \
-    "$RPM_ROOT/BUILDROOT/usr/share/applications" \
-    "$RPM_ROOT/BUILDROOT/usr/share/icons/hicolor/48x48/apps" \
-    "$RPM_ROOT/BUILDROOT/usr/share/icons/hicolor/512x512/apps" \
-    "$RPM_ROOT/BUILDROOT/usr/share/metainfo" \
-    "$RPM_ROOT/BUILDROOT/usr/share/licenses/nflix-desktop"
-cp -a "$STAGE/bin/nflix-desktop" "$RPM_ROOT/BUILDROOT/usr/bin/"
-cp -a "$STAGE/lib/nflix-desktop/." "$RPM_ROOT/BUILDROOT/usr/lib/nflix-desktop/"
-install -m 644 "$STAGE/io.github.nflixdesktop.desktop" "$RPM_ROOT/BUILDROOT/usr/share/applications/"
-install -m 644 "$STAGE/io.github.nflixdesktop.metainfo.xml" "$RPM_ROOT/BUILDROOT/usr/share/metainfo/"
-install -m 644 "$STAGE/assets/icon-48.png" "$RPM_ROOT/BUILDROOT/usr/share/icons/hicolor/48x48/apps/nflix-desktop.png"
-install -m 644 "$STAGE/assets/icon-512.png" "$RPM_ROOT/BUILDROOT/usr/share/icons/hicolor/512x512/apps/nflix-desktop.png"
-install -m 644 "$STAGE/LICENSE" "$RPM_ROOT/BUILDROOT/usr/share/licenses/nflix-desktop/"
-install -m 644 "$STAGE/THIRD_PARTY_NOTICES.md" "$RPM_ROOT/BUILDROOT/usr/share/licenses/nflix-desktop/"
+install -d "$RPM_ROOT/BUILD" "$RPM_BUILDROOT/usr/bin" "$RPM_ROOT/RPMS/$RPM_ARCH" "$RPM_ROOT/SOURCES" "$RPM_ROOT/SPECS" "$RPM_ROOT/SRPMS"
+install -d "$RPM_BUILDROOT/usr/lib/nflix-desktop" \
+    "$RPM_BUILDROOT/usr/share/applications" \
+    "$RPM_BUILDROOT/usr/share/icons/hicolor/48x48/apps" \
+    "$RPM_BUILDROOT/usr/share/icons/hicolor/512x512/apps" \
+    "$RPM_BUILDROOT/usr/share/metainfo" \
+    "$RPM_BUILDROOT/usr/share/licenses/nflix-desktop"
+cp -a "$STAGE/bin/nflix-desktop" "$RPM_BUILDROOT/usr/bin/"
+cp -a "$STAGE/lib/nflix-desktop/." "$RPM_BUILDROOT/usr/lib/nflix-desktop/"
+install -m 644 "$STAGE/io.github.nflixdesktop.desktop" "$RPM_BUILDROOT/usr/share/applications/"
+install -m 644 "$STAGE/io.github.nflixdesktop.metainfo.xml" "$RPM_BUILDROOT/usr/share/metainfo/"
+install -m 644 "$STAGE/assets/icon-48.png" "$RPM_BUILDROOT/usr/share/icons/hicolor/48x48/apps/nflix-desktop.png"
+install -m 644 "$STAGE/assets/icon-512.png" "$RPM_BUILDROOT/usr/share/icons/hicolor/512x512/apps/nflix-desktop.png"
+install -m 644 "$STAGE/LICENSE" "$RPM_BUILDROOT/usr/share/licenses/nflix-desktop/"
+install -m 644 "$STAGE/THIRD_PARTY_NOTICES.md" "$RPM_BUILDROOT/usr/share/licenses/nflix-desktop/"
 cat > "$RPM_ROOT/SPECS/nflix-desktop.spec" <<EOF
 Name: nflix-desktop
 Version: $VERSION

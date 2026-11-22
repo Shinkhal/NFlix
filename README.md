@@ -49,7 +49,7 @@ python3.13 -m venv .venv-build
 BUILD_VENV=.venv-build scripts/build-release.sh
 ```
 
-The release archive, Debian package, RPM package, and SHA-256 checksums are written to `dist/`. Extract the archive and run `./install.sh` to install it under `~/.local`; `./uninstall.sh` removes it. Pushing a `v0.2.2` tag builds and publishes x86_64 and arm64 Linux artifacts through GitHub Actions. Other Linux distributions and architectures still need validation.
+The release archive, Debian package, RPM package, and SHA-256 checksums are written to `dist/`. Extract the archive and run `./install.sh` to install it under `~/.local`; `./uninstall.sh` removes it. Pushing a `v0.2.3` tag builds and publishes x86_64 and arm64 Linux artifacts through GitHub Actions. Other Linux distributions and architectures still need validation.
 
 Before redistributing binaries, review [third-party notices](THIRD_PARTY_NOTICES.md) and Qt's licensing terms. The standalone build includes Qt WebEngine and Chromium components and can be large.
 

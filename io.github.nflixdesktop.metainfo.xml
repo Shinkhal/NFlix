@@ -23,12 +23,12 @@
   <screenshots>
     <screenshot type="default">
       <caption>Nflix Desktop main window</caption>
-      <image>https://raw.githubusercontent.com/Shinkhal/NFlix/v0.2.2/screenshots/main-window.png</image>
+      <image>https://raw.githubusercontent.com/Shinkhal/NFlix/v0.2.3/screenshots/main-window.png</image>
     </screenshot>
   </screenshots>
   <content_rating type="oars-1.1"/>
   <releases>
-    <release version="0.2.2" date="2026-11-22">
+    <release version="0.2.3" date="2026-11-22">
       <description><p>Add multi-architecture Linux packages and release screenshots.</p></description>
     </release>
   </releases>
