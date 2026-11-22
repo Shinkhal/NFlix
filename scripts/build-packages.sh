@@ -86,5 +86,7 @@ EOF
 rpmbuild --define "_topdir $RPM_ROOT" --define "_build_id_links none" --target "$RPM_ARCH" -bb "$RPM_ROOT/SPECS/nflix-desktop.spec" >/dev/null
 cp "$RPM_ROOT/RPMS/$RPM_ARCH/nflix-desktop-$VERSION-1.$RPM_ARCH.rpm" "$OUTPUT_DIR/nflix-desktop-$VERSION-linux-$ARCH.rpm"
 
-sha256sum "$OUTPUT_DIR"/nflix-desktop-"$VERSION"-linux-"$ARCH".{deb,rpm} \
+sha256sum \
+    "$OUTPUT_DIR/nflix-desktop-$VERSION-linux-$ARCH.deb" \
+    "$OUTPUT_DIR/nflix-desktop-$VERSION-linux-$ARCH.rpm" \
     > "$OUTPUT_DIR/nflix-desktop-$VERSION-linux-$ARCH-packages.sha256"
