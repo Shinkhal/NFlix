@@ -9,12 +9,20 @@ permissions:
   contents: write
 
 jobs:
-  linux-x86_64:
-    runs-on: ubuntu-24.04
+  linux-build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
-      - name: Install compiler and Python headers
-        run: sudo apt-get update && sudo apt-get install -y build-essential python3-dev python3-venv
+      - name: Install compiler, packaging tools, and Python headers
+        run: sudo apt-get update && sudo apt-get install -y build-essential dpkg-dev rpm python3-dev python3-venv
       - name: Install build dependencies
         run: |
           python3 -m venv .venv-build
@@ -25,7 +33,23 @@ jobs:
           test "${GITHUB_REF_NAME#v}" = "$version"
       - name: Build standalone Linux bundle
         run: BUILD_VENV=.venv-build scripts/build-release.sh
+      - name: Upload Linux packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: nflix-desktop-linux-${{ matrix.arch }}
+          path: dist/nflix-desktop-*
+
+  publish:
+    needs: linux-build
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Download Linux packages
+        uses: actions/download-artifact@v4
+        with:
+          pattern: nflix-desktop-linux-*
+          path: dist
+          merge-multiple: true
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" dist/nflix-desktop-*-linux-x86_64.tar.gz dist/nflix-desktop-*-linux-x86_64.tar.gz.sha256 --generate-notes
+        run: gh release create "$GITHUB_REF_NAME" dist/nflix-desktop-* --generate-notes

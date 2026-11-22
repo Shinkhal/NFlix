@@ -56,4 +56,10 @@ install -m 644 "$PROJECT_ROOT/README.md" "$STAGE/README.md"
 
 tar -C "$STAGE_ROOT" -czf "$PROJECT_ROOT/dist/nflix-desktop-$VERSION-linux-$ARCH.tar.gz" "$(basename "$STAGE")"
 sha256sum "$PROJECT_ROOT/dist/nflix-desktop-$VERSION-linux-$ARCH.tar.gz" > "$PROJECT_ROOT/dist/nflix-desktop-$VERSION-linux-$ARCH.tar.gz.sha256"
+if command -v dpkg-deb >/dev/null 2>&1 && command -v rpmbuild >/dev/null 2>&1; then
+    "$PROJECT_ROOT/scripts/build-packages.sh" "$STAGE" "$VERSION" "$ARCH" "$PROJECT_ROOT/dist"
+else
+    echo "dpkg-deb and rpmbuild are required to create .deb and .rpm packages." >&2
+    exit 1
+fi
 echo "Release bundle created in dist/"
