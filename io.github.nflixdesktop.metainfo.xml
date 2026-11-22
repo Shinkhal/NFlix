@@ -28,8 +28,8 @@
   </screenshots>
   <content_rating type="oars-1.1"/>
   <releases>
-    <release version="0.2.0" date="2026-11-22">
-      <description><p>First PySide6 and Qt WebEngine release.</p></description>
+    <release version="0.2.1" date="2026-11-22">
+      <description><p>Fix Linux release packaging and desktop installation.</p></description>
     </release>
   </releases>
 </component>

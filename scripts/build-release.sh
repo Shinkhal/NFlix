@@ -18,6 +18,8 @@ ARCH=$(uname -m)
 DEPLOY_DIR="$PROJECT_ROOT/dist/nflix-desktop.dist"
 PYTHON_INCLUDE=$($PYTHON -c 'import sysconfig; print(sysconfig.get_path("include"))')
 
+mkdir -p "$PROJECT_ROOT/dist"
+
 if [ ! -f "$PYTHON_INCLUDE/Python.h" ]; then
     echo "Python development headers are required (missing $PYTHON_INCLUDE/Python.h). Install the matching python-devel/python-dev package and retry." >&2
     exit 1
