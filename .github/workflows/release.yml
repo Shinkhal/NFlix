@@ -1,59 +1,43 @@
 name: Linux release
-
 on:
   workflow_dispatch:
   push:
-    tags:
-      - "v*"
-
+    tags: ["v*"]
 permissions:
-  contents: write
-
+  contents: read
 jobs:
   linux-build:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - arch: x86_64
-            runner: ubuntu-24.04
-          - arch: arm64
-            runner: ubuntu-24.04-arm
-    runs-on: ${{ matrix.runner }}
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - name: Install compiler, packaging tools, and Python headers
-        run: sudo apt-get update && sudo apt-get install -y build-essential dpkg-dev rpm python3-dev python3-venv
-      - name: Install build dependencies
-        run: |
-          python3 -m venv .venv-build
-          .venv-build/bin/python -m pip install .
-      - name: Check release tag matches project version
-        if: github.event_name == 'push'
-        run: |
-          version=$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')
-          test "${GITHUB_REF_NAME#v}" = "$version"
-      - name: Build standalone Linux bundle
-        run: BUILD_VENV=.venv-build scripts/build-release.sh
-      - name: Upload Linux packages
-        uses: actions/upload-artifact@v4
+      - uses: actions/setup-node@v4
         with:
-          name: nflix-desktop-linux-${{ matrix.arch }}
-          path: dist/nflix-desktop-*
-
+          node-version: 24
+          cache: npm
+      - run: sudo apt-get update && sudo apt-get install -y rpm
+      - run: npm ci
+      - name: Check release tag
+        if: github.event_name == 'push'
+        run: test "${GITHUB_REF_NAME#v}" = "$(node -p 'require("./package.json").version')"
+      - run: scripts/build-release.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nflix-desktop-linux-x64
+          path: release/nflix-desktop-*
+          if-no-files-found: error
   publish:
     if: github.event_name == 'push'
     needs: linux-build
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write
     steps:
-      - name: Download Linux packages
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
-          pattern: nflix-desktop-linux-*
-          path: dist
-          merge-multiple: true
-      - name: Publish GitHub release
+          name: nflix-desktop-linux-x64
+          path: release
+      - name: Publish prerelease for playback validation
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-        run: gh release create "$GITHUB_REF_NAME" dist/nflix-desktop-* --generate-notes
+        run: gh release create "$GITHUB_REF_NAME" release/nflix-desktop-* --prerelease --generate-notes

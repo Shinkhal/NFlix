@@ -1,0 +1,78 @@
+{
+  "name": "nflix-desktop",
+  "productName": "Nflix Desktop",
+  "version": "0.3.0",
+  "description": "Unofficial Linux desktop access to Netflix",
+  "private": true,
+  "main": "out/main.js",
+  "author": {
+    "name": "Nflix Desktop contributors"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/Shinkhal/NFlix",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "npm run build && node scripts/start.cjs",
+    "check:playback": "npm run build && node scripts/start.cjs --check-playback",
+    "test": "npm run build && node --test --test-isolation=none out/policy.test.js",
+    "pack": "npm run build && node scripts/prepare-runtime.cjs && electron-builder --linux dir --publish never",
+    "dist": "npm run build && node scripts/prepare-runtime.cjs && electron-builder --linux AppImage tar.gz deb rpm --publish never"
+  },
+  "devDependencies": {
+    "electron": "https://github.com/castlabs/electron-releases#v45.2.1+wvcus",
+    "electron-builder": "26.18.0",
+    "typescript": "5.9.3",
+    "@types/node": "24.19.2"
+  },
+  "build": {
+    "appId": "io.github.nflixdesktop",
+    "productName": "Nflix Desktop",
+    "executableName": "nflix-desktop",
+    "electronDist": "node_modules/electron/dist",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "out/**/*.js",
+      "!out/**/*.test.js",
+      "assets/icon-512.png",
+      "assets/probe.html",
+      "package.json",
+      "LICENSE",
+      "THIRD_PARTY_NOTICES.md"
+    ],
+    "asar": true,
+    "linux": {
+      "target": [
+        "AppImage",
+        "tar.gz",
+        "deb",
+        "rpm"
+      ],
+      "icon": "assets/icon-512.png",
+      "category": "AudioVideo",
+      "artifactName": "nflix-desktop-${version}-${arch}.${ext}",
+      "desktop": {
+        "entry": {
+          "Name": "Nflix Desktop",
+          "StartupWMClass": "io.github.nflixdesktop",
+          "Keywords": "video;streaming;netflix;"
+        }
+      },
+      "syncDesktopName": true
+    },
+    "deb": {
+      "maintainer": "Nflix Desktop contributors <noreply@github.com>"
+    },
+    "rpm": {
+      "maintainer": "Nflix Desktop contributors <noreply@github.com>"
+    },
+    "appImage": {
+      "executableArgs": []
+    }
+  },
+  "desktopName": "io.github.nflixdesktop.desktop"
+}
