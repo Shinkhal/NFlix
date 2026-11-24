@@ -155,6 +155,20 @@ async function hideScrollbars(): Promise<void> {
       width: 0 !important; height: 0 !important; display: none !important;
     }
   `);
+  await window.webContents.executeJavaScript(`(() => {
+    if (window.__nflixPlaybackShortcuts) return;
+    window.__nflixPlaybackShortcuts = true;
+    window.addEventListener('keydown', event => {
+      if (event.key.toLowerCase() !== 'f' || event.ctrlKey || event.altKey || event.metaKey || event.repeat) return;
+      const target = event.target;
+      if (target instanceof HTMLElement && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))) return;
+      const video = document.querySelector('video');
+      if (!video) return;
+      event.preventDefault();
+      if (document.fullscreenElement) document.exitFullscreen();
+      else (video.closest('[class*="watch-video"]') || video).requestFullscreen();
+    }, true);
+  })()`, true);
 }
 
 async function openExternal(url: string): Promise<void> {
@@ -180,10 +194,17 @@ function createWindow(): BrowserWindow {
     title: 'Nflix Desktop', backgroundColor: '#141414',
     icon: path.join(__dirname, '..', 'assets', 'icon-512.png'),
     autoHideMenuBar: true,
+    fullscreenable: true,
     webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false, webSecurity: true },
   });
   win.once('ready-to-show', () => { win.show(); if (state.maximized) win.maximize(); });
   win.on('page-title-updated', event => { event.preventDefault(); win.setTitle('Nflix Desktop'); });
+  // Netflix's player uses the HTML fullscreen API. Electron does not promote
+  // that request to native window fullscreen unless these events are handled.
+  win.on('enter-html-full-screen', () => { if (!win.isFullScreen()) win.setFullScreen(true); });
+  win.on('leave-html-full-screen', () => { if (win.isFullScreen()) win.setFullScreen(false); });
+  win.webContents.on('enter-html-full-screen', () => { if (!win.isFullScreen()) win.setFullScreen(true); });
+  win.webContents.on('leave-html-full-screen', () => { if (win.isFullScreen()) win.setFullScreen(false); });
   win.webContents.on('did-finish-load', () => { void hideScrollbars(); });
   const navigate = (event: Electron.Event, url: string) => {
     if (!isNetflixURL(url)) event.preventDefault();
@@ -201,7 +222,8 @@ function createWindow(): BrowserWindow {
   win.webContents.on('before-input-event', (event, input) => {
     if (input.type !== 'keyDown') return;
     if (input.control && input.shift && input.key.toLowerCase() === 'p') { event.preventDefault(); toggleMini(); }
-    if (input.key === 'F11' || (input.control && input.shift && input.key.toLowerCase() === 'f')) {
+    if (!input.isAutoRepeat && (input.key === 'F11' || input.key.toLowerCase() === 'f' ||
+        (input.control && input.shift && input.key.toLowerCase() === 'f'))) {
       event.preventDefault();
       win.setFullScreen(!win.isFullScreen());
     }

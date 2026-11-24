@@ -28,6 +28,7 @@
   </screenshots>
   <content_rating type="oars-1.1"/>
   <releases>
+    <release version="0.3.1" date="2026-11-24"><description><p>Fix player fullscreen controls and add the standard F fullscreen shortcut.</p></description></release>
     <release version="0.3.0" date="2026-11-24"><description><p>Rewrite the Linux desktop shell using Castlabs Electron and TypeScript with managed Widevine startup and playback diagnostics.</p></description></release>
     <release version="0.2.4" date="2026-11-23">
       <description><p>Fix Linux package checksum generation and release publishing.</p></description>

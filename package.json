@@ -1,7 +1,7 @@
 {
   "name": "nflix-desktop",
   "productName": "Nflix Desktop",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Unofficial Linux desktop access to Netflix",
   "private": true,
   "main": "out/main.js",
