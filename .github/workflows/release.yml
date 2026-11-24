@@ -36,8 +36,8 @@ jobs:
         with:
           name: nflix-desktop-linux-x64
           path: release
-      - name: Publish prerelease for playback validation
+      - name: Publish Linux release
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-        run: gh release create "$GITHUB_REF_NAME" release/nflix-desktop-* --prerelease --generate-notes
+        run: gh release create "$GITHUB_REF_NAME" release/nflix-desktop-* --generate-notes
