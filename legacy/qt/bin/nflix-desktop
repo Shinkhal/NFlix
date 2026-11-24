@@ -1,0 +1,23 @@
+#!/bin/sh
+set -eu
+BIN_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+APP_DIR=$(CDPATH= cd -- "$BIN_DIR/../lib/nflix-desktop" && pwd)
+export NFLIX_APP_ROOT="$APP_DIR"
+RUNTIME=auto
+if [ -f "$APP_DIR/runtime" ]; then
+    RUNTIME=$(cat "$APP_DIR/runtime")
+fi
+if [ "$RUNTIME" = system ]; then
+    if [ "${1:-}" = --check-playback ]; then
+        exec /usr/bin/python3 -E -s "$APP_DIR/scripts/check-playback.py"
+    fi
+    exec /usr/bin/python3 -E -s "$APP_DIR/nflix_desktop.py" "$@"
+fi
+if [ "$RUNTIME" != standalone ] && [ -x "$APP_DIR/venv/bin/nflix-desktop" ]; then
+    exec "$APP_DIR/venv/bin/nflix-desktop" "$@"
+fi
+if [ -x "$APP_DIR/nflix_desktop.bin" ]; then
+    exec "$APP_DIR/nflix_desktop.bin" "$@"
+fi
+echo "Nflix Desktop runtime is missing. Reinstall the application." >&2
+exit 1

@@ -3,7 +3,87 @@
 from __future__ import annotations
 
 import os
+import platform
+import re
+from pathlib import Path
 import sys
+
+
+def widevine_candidates():
+    """Search app bundles, browser installs and browser component profiles."""
+    arch = {"x86_64": "linux_x64", "amd64": "linux_x64",
+            "aarch64": "linux_arm64", "arm64": "linux_arm64"}.get(
+                platform.machine().lower())
+    if arch is None:
+        return
+    relative = f"WidevineCdm/_platform_specific/{arch}/libwidevinecdm.so"
+    roots = [Path(__file__).resolve().parent]
+    if os.environ.get("NFLIX_APP_ROOT"):
+        roots.insert(0, Path(os.environ["NFLIX_APP_ROOT"]))
+    roots += [Path("/opt/google") / browser
+              for browser in ("chrome", "chrome-beta", "chrome-unstable")]
+    roots += [Path(lib) / browser
+              for lib in ("/usr/lib", "/usr/lib64", "/usr/lib/x86_64-linux-gnu",
+                          "/usr/lib/aarch64-linux-gnu")
+              for browser in ("chromium", "chromium-browser")]
+    for root in roots:
+        yield root / relative
+        yield root / "libwidevinecdm.so"
+
+    home = Path.home()
+    config = Path(os.environ.get("XDG_CONFIG_HOME", home / ".config"))
+    patterns = [
+        str(config / browser / "WidevineCdm" / "*" /
+            "_platform_specific" / arch / "libwidevinecdm.so")
+        for browser in ("google-chrome", "google-chrome-beta",
+                        "google-chrome-unstable", "chromium", "chromium-browser")
+    ]
+    patterns += [
+        str(root / "*" / "gmp-widevinecdm" / "*" / "libwidevinecdm.so")
+        for root in (home / ".mozilla/firefox", config / "mozilla/firefox",
+                     home / "snap/firefox/common/.mozilla/firefox",
+                     home / ".var/app/org.mozilla.firefox/.mozilla/firefox")
+    ]
+    # Prefer newer component versions within each browser, e.g. 4.10 over 4.9.
+    import glob
+    for pattern in patterns:
+        matches = sorted(glob.glob(pattern),
+                         key=lambda path: [int(n) for n in re.findall(r"\d+", path)],
+                         reverse=True)
+        yield from map(Path, matches)
+
+
+def compatible_widevine(path: Path) -> bool:
+    """Reject unreadable files and CDMs built for another CPU architecture."""
+    machine = {"x86_64": 62, "amd64": 62, "aarch64": 183, "arm64": 183}.get(
+        platform.machine().lower())
+    try:
+        with path.open("rb") as library:
+            header = library.read(20)
+        return (len(header) == 20 and header[:6] == b"\x7fELF\x02\x01"
+                and int.from_bytes(header[18:20], "little") == machine)
+    except OSError:
+        return False
+
+
+def configure_widevine() -> None:
+    """Set Qt's documented CDM flag before WebEngine is imported/initialized."""
+    existing = os.environ.get("QTWEBENGINE_CHROMIUM_FLAGS", "")
+    # Explicit environment or command-line overrides always win.
+    flags = existing + " " + " ".join(sys.argv[1:])
+    if re.search(r"(?:^|\s)--widevine-path(?:=|\s|$)", flags):
+        return
+    for path in widevine_candidates():
+        if compatible_widevine(path):
+            # Qt uses double quotes to group paths containing whitespace.
+            if '"' in str(path):
+                continue
+            os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = (
+                f'{existing} --widevine-path="{path}"'.strip())
+            return
+
+
+configure_widevine()
 
 from PySide6.QtCore import QSettings, QStandardPaths, QUrl, Qt
 from PySide6.QtGui import QDesktopServices, QIcon, QKeySequence, QShortcut

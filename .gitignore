@@ -12,3 +12,5 @@ release/
 core
 .env*
 !.env.example
+
+out/

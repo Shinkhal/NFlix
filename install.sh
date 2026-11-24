@@ -54,49 +54,30 @@ do
     fi
 done
 
-if [ -f "$SCRIPT_DIR/pyproject.toml" ] && [ -f "$SCRIPT_DIR/nflix_desktop.py" ]; then
-    # Source checkout install: keep the Python runtime separate from user data.
-    if ! command -v python3 >/dev/null 2>&1; then
-        echo "Python 3 is required to install Nflix Desktop from source." >&2
-        exit 1
-    fi
-    if [ ! -x "$APP_DIR/venv/bin/python" ]; then
-        python3 -m venv "$APP_DIR/venv"
-    fi
-    if ! "$APP_DIR/venv/bin/python" -c 'import nflix_desktop, PySide6' >/dev/null 2>&1; then
-        PIP_LOG=$(mktemp "${TMPDIR:-/tmp}/nflix-desktop-pip.XXXXXX")
-        if ! PIP_PROGRESS_BAR=off PIP_DISABLE_PIP_VERSION_CHECK=1 \
-            "$APP_DIR/venv/bin/python" -m pip install --no-input --quiet "$SCRIPT_DIR" \
-            >"$PIP_LOG" 2>&1; then
-            echo "Could not install Nflix Desktop dependencies. Details:" >&2
-            tail -n 20 "$PIP_LOG" >&2 || cat "$PIP_LOG" >&2
-            rm -f "$PIP_LOG"
-            exit 1
-        fi
-        rm -f "$PIP_LOG"
-    fi
-    install -m 755 "$SCRIPT_DIR/bin/nflix-desktop" "$BIN_DIR/nflix-desktop"
-    install -m 644 "$SCRIPT_DIR/$DESKTOP_FILE" "$DESKTOP_DIR/$DESKTOP_FILE"
-    install -m 644 "$SCRIPT_DIR/io.github.nflixdesktop.metainfo.xml" "$METAINFO_DIR/$APP_ID.metainfo.xml"
-    install -m 644 "$SCRIPT_DIR/LICENSE" "$LICENSE_DIR/LICENSE"
-    install -m 644 "$SCRIPT_DIR/THIRD_PARTY_NOTICES.md" "$LICENSE_DIR/THIRD_PARTY_NOTICES.md"
-    install -m 644 "$SCRIPT_DIR/assets/icon-48.png" "$ICON_DIR_48/$ICON_NAME.png"
-    install -m 644 "$SCRIPT_DIR/assets/icon-512.png" "$ICON_DIR_512/$ICON_NAME.png"
-else
-    # Release archive install: copy the already-built standalone runtime.
-    if [ ! -x "$SCRIPT_DIR/lib/nflix-desktop/nflix_desktop.bin" ]; then
-        echo "Run this from the source checkout or an extracted Nflix Desktop release bundle." >&2
-        exit 1
-    fi
-    cp -a "$SCRIPT_DIR/lib/nflix-desktop/." "$APP_DIR/"
-    install -m 755 "$SCRIPT_DIR/bin/nflix-desktop" "$BIN_DIR/nflix-desktop"
-    install -m 644 "$SCRIPT_DIR/$DESKTOP_FILE" "$DESKTOP_DIR/$DESKTOP_FILE"
-    install -m 644 "$SCRIPT_DIR/io.github.nflixdesktop.metainfo.xml" "$METAINFO_DIR/$APP_ID.metainfo.xml"
-    install -m 644 "$SCRIPT_DIR/LICENSE" "$LICENSE_DIR/LICENSE"
-    install -m 644 "$SCRIPT_DIR/THIRD_PARTY_NOTICES.md" "$LICENSE_DIR/THIRD_PARTY_NOTICES.md"
-    install -m 644 "$SCRIPT_DIR/assets/icon-48.png" "$ICON_DIR_48/$ICON_NAME.png"
-    install -m 644 "$SCRIPT_DIR/assets/icon-512.png" "$ICON_DIR_512/$ICON_NAME.png"
+# Install the already-built Electron directory; do not overwrite legacy profiles.
+RUNTIME_DIR=${NFLIX_RUNTIME_DIR:-"$SCRIPT_DIR/release/linux-unpacked"}
+if [ ! -x "$RUNTIME_DIR/nflix-desktop" ]; then
+    echo "Build the runtime first with npm ci && npm run pack." >&2
+    exit 1
 fi
+# Stage a complete runtime before selecting it. Older Python files can remain
+# for rollback but the launcher only selects this Electron directory.
+STAGED=$(mktemp -d "$APP_DIR/.electron-install.XXXXXX")
+trap 'rm -rf "$STAGED"' EXIT HUP INT TERM
+cp -a "$RUNTIME_DIR/." "$STAGED/"
+if [ -d "$APP_DIR/electron" ]; then
+    rm -rf "$APP_DIR/electron.previous"
+    mv "$APP_DIR/electron" "$APP_DIR/electron.previous"
+fi
+mv "$STAGED" "$APP_DIR/electron"
+trap - EXIT HUP INT TERM
+install -m 755 "$SCRIPT_DIR/bin/nflix-desktop" "$BIN_DIR/nflix-desktop"
+install -m 644 "$SCRIPT_DIR/$DESKTOP_FILE" "$DESKTOP_DIR/$DESKTOP_FILE"
+install -m 644 "$SCRIPT_DIR/io.github.nflixdesktop.metainfo.xml" "$METAINFO_DIR/$APP_ID.metainfo.xml"
+install -m 644 "$SCRIPT_DIR/LICENSE" "$LICENSE_DIR/LICENSE"
+install -m 644 "$SCRIPT_DIR/THIRD_PARTY_NOTICES.md" "$LICENSE_DIR/THIRD_PARTY_NOTICES.md"
+install -m 644 "$SCRIPT_DIR/assets/icon-48.png" "$ICON_DIR_48/$ICON_NAME.png"
+install -m 644 "$SCRIPT_DIR/assets/icon-512.png" "$ICON_DIR_512/$ICON_NAME.png"
 
 # Remove the pre-release desktop ID used by an earlier test install.
 rm -f "$DESKTOP_DIR/io.github.nflixdesktop.desktop.desktop"
