@@ -1,7 +1,18 @@
 # Third-party notices
 
-Nflix Desktop depends on PySide6 and Qt WebEngine, distributed under the Qt for Python and Qt licensing options. These components are not covered by this project's MIT license. Review the applicable license obligations before redistributing a built application, including the requirement to provide relevant notices and license texts when required.
+Nflix Desktop source is MIT licensed.
 
-The Qt WebEngine distribution incorporates Chromium and other third-party components with their own notices and license terms. The PySide6 wheels and the bundled Qt installation include the upstream license and third-party notice material; retain that material in binary releases. See [Qt for Python licensing](https://doc.qt.io/qtforpython-6/licenses.html) and the Qt WebEngine third-party notices shipped by the selected Qt build.
+The packaged runtime is Castlabs Electron for Content Security, based on
+Electron and Chromium. Preserve the runtime's LICENSE and LICENSES.chromium.html
+files in distributed packages. See https://github.com/castlabs/electron-releases
+for runtime documentation, licensing and platform limitations.
 
-The application is an unofficial client for a third-party streaming service. Netflix names and marks remain the property of Netflix, Inc.
+Widevine is a proprietary Google component obtained by the runtime's component
+updater. It is not included in the repository or packaged application archives.
+Its availability and use are subject to the provider's terms and service policy.
+
+Netflix and its marks belong to Netflix, Inc. This project is independent and
+does not grant access to Netflix content or bypass DRM.
+
+The archived Qt implementation has separate PySide6/Qt licensing requirements;
+it is not shipped in the current Electron packages.

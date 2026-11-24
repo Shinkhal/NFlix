@@ -13,7 +13,7 @@
   <url type="vcs-browser">https://github.com/Shinkhal/NFlix</url>
   <description>
     <p>An unofficial Linux desktop wrapper that opens Netflix in a dedicated window. This project is independent and is not affiliated with or endorsed by Netflix, Inc.</p>
-    <p>Requires a Netflix account and an internet connection. Playback depends on the Qt WebEngine build, codecs, DRM components, and Netflix service availability. The application does not provide Netflix content or offline downloads.</p>
+    <p>Requires a Netflix account and an internet connection. Playback depends on the bundled browser runtime, Widevine components, and Netflix service availability. The application does not provide Netflix content or offline downloads.</p>
   </description>
   <launchable type="desktop-id">io.github.nflixdesktop.desktop</launchable>
   <icon type="stock">nflix-desktop</icon>
@@ -28,6 +28,7 @@
   </screenshots>
   <content_rating type="oars-1.1"/>
   <releases>
+    <release version="0.3.0" date="2026-11-24"><description><p>Rewrite the Linux desktop shell using Castlabs Electron and TypeScript with managed Widevine startup and playback diagnostics.</p></description></release>
     <release version="0.2.4" date="2026-11-23">
       <description><p>Fix Linux package checksum generation and release publishing.</p></description>
     </release>

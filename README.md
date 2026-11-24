@@ -1,64 +1,126 @@
 # Nflix Desktop
 
-Nflix Desktop is an unofficial Linux desktop wrapper that opens Netflix in a dedicated PySide6 window. The app uses a custom N icon and lets Linux desktop decorations and Qt controls use the active system theme.
+An unofficial Linux desktop app that opens Netflix in a dedicated, sandboxed
+Castlabs Electron window. The application is written in TypeScript.
 
-> **Unofficial project:** Nflix Desktop is not affiliated with, endorsed by, or sponsored by Netflix, Inc. Netflix and its marks belong to Netflix, Inc. A Netflix account and internet access are required.
+Nflix Desktop is not affiliated with or endorsed by Netflix. A Netflix account
+and internet connection are required. The app does not provide content or
+offline downloads.
 
 ## Run from source
 
-Requirements: Linux, Python 3.10 or newer, and a graphical desktop session.
+Use Linux x86_64 with Node.js 24 or newer and npm.
 
 ```sh
-python3 -m venv .venv
-.venv/bin/python -m pip install .
-./run.sh
+npm ci
+npm start
 ```
 
-## Install and uninstall
+The runtime is pinned to Castlabs Electron 45.2.1+wvcus. It obtains Widevine
+through its component updater, waits for setup, and restarts once when necessary
+to activate a newly installed component on Linux. Initial setup needs network
+access. The app does not copy a CDM from Chrome or Firefox.
 
-From this checkout, install a per-user copy with:
+## Playback status
+
+**Netflix video and sound were confirmed working by the user on 2026-11-24**
+in the installed 0.3.0 build on Fedora 45 x86_64, using Castlabs Electron 45.2.1
+and Widevine 4.10.3112.0.
+
+The installed runtime and AppImage also pass automated H.264, AAC, VP9 and
+Widevine capability checks with Chromium sandboxing enabled. This is local
+validation, not a claim of compatibility with every Linux distribution.
+Seeking, subtitles, fullscreen playback, session persistence across restarts,
+and other distributions still need separate end-to-end testing. The diagnostic
+report covers automated capabilities only; its playback-verification field
+does not record manual user tests.
+
+Run the account-free check:
 
 ```sh
-./install.sh
+npm run check:playback
 ```
 
-This creates a private Python environment under `~/.local/lib/nflix-desktop` and installs the desktop entry and icons under `~/.local`. It may download PySide6 if it is not already cached. Remove the application files with `./uninstall.sh`; this keeps Netflix cookies and settings in `~/.local/share/nflix-desktop`.
+It uses a local page in a temporary browser session. Exit codes: 0 = prerequisites
+available, 1 = missing capability, 2 = initialization failure. A raw packaged
+binary can return 3 when a first-run restart is required; run it again.
+The source and installed launchers handle that restart automatically.
 
-The app uses Qt WebEngine, which is based on Chromium. The standard PySide6 package does not include a Widevine CDM, and H.264 availability depends on the Qt build. Sign-in may work while DRM playback fails. This app does not bypass DRM or provide Netflix content.
+A sanitized report is saved as `playback-diagnostics.json` under the Electron
+profile, normally `~/.config/nflix-desktop`. It contains runtime versions and
+capability results, not cookies, license challenges or browsing history.
 
 ## Desktop behavior
 
-- Netflix cookies and site data persist in the application data directory.
-- Window geometry is restored on the next launch.
-- Main-frame HTTP(S) links outside `netflix.com` open in the system browser.
-- `Ctrl+Shift+P` toggles a compact always-on-top window.
-- The window title bar and Qt controls use the Linux desktop's native decorations and platform theme.
-- Offline downloads and MPRIS integration are not provided.
+- Persistent Netflix session and window geometry.
+- Fullscreen: F11; exit with Escape.
+- Compact always-on-top window: Ctrl+Shift+P.
+- Press Alt to reveal the menu, including playback diagnostics.
+- HTTPS Netflix pages stay in the app. Other HTTP(S) links require confirmation
+  before opening in the system browser.
+- Remote pages have no Node.js access or preload bridge. Context isolation and
+  Chromium sandboxing remain enabled.
+- Arbitrary downloads and unrelated web permissions are denied.
 
-## Memory use
+The old Qt profile is left intact; log in again after migration. Do not copy
+cookies or browser databases between engines.
 
-Qt WebEngine runs Chromium renderer and utility processes. Nflix Desktop removes Electron's Node.js layer, but the Netflix page and video decoding remain the main memory costs. Actual RAM use depends on the host, playback, and Qt build; no reduction is claimed without a measured comparison.
-
-## Build and publish a Linux release
-
-The project uses Qt for Python's `pyside6-deploy` tool to create a standalone Linux bundle. Build with Python 3.12 or 3.13, matching Python development headers, a C compiler, and `patchelf` available, on the target architecture (Nuitka 4.1.1 does not yet support the host's Python 3.15 build reliably):
+## Build and install locally
 
 ```sh
-python3.13 -m venv .venv-build
-.venv-build/bin/python -m pip install .
-BUILD_VENV=.venv-build scripts/build-release.sh
+npm run pack
+./install.sh
 ```
 
-The release archive, Debian package, RPM package, and SHA-256 checksums are written to `dist/`. Extract the archive and run `./install.sh` to install it under `~/.local`; `./uninstall.sh` removes it. Pushing a `v0.2.4` tag builds and publishes x86_64 and arm64 Linux artifacts through GitHub Actions. Other Linux distributions and architectures still need validation.
+The installer copies `release/linux-unpacked` to
+`~/.local/lib/nflix-desktop/electron` and refreshes the applications-menu entry.
+Reinstalling replaces the Electron runtime; the previous copy is retained as
+`electron.previous`. Existing Python files and user profiles are preserved.
 
-Before redistributing binaries, review [third-party notices](THIRD_PARTY_NOTICES.md) and Qt's licensing terms. The standalone build includes Qt WebEngine and Chromium components and can be large.
+Launch **Nflix Desktop** from the applications menu, or run:
 
-Store submissions still need screenshots from the final release. The AppStream homepage, issue tracker, and source links use the configured GitHub origin. Do not advertise Netflix playback until DRM playback has been tested on the target release build.
+```sh
+~/.local/bin/nflix-desktop
+~/.local/bin/nflix-desktop --check-playback
+```
 
-## Contributing
+`./uninstall.sh` removes the installed application while retaining user profiles.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), and [SECURITY.md](SECURITY.md).
+## Distribution builds
 
-## License
+```sh
+scripts/build-release.sh
+```
 
-The project code is licensed under the MIT License. PySide6 and Qt WebEngine have separate LGPL/GPL/commercial licensing terms; review the notices and Qt licensing requirements for any redistributed build.
+Builds AppImage, tar.gz, DEB and RPM files with checksums in `release/`.
+DEB/RPM tooling requires `rpmbuild` and the `libcrypt.so.1` compatibility
+library on the build host (Fedora: `rpm-build` and `libxcrypt-compat`).
+These are build dependencies, not application dependencies.
+The tar archive contains a runnable application directory. Electron Builder
+copies the installed **Castlabs** runtime rather than downloading stock
+Electron. Building may download packaging tools; Node.js is not needed to run
+the packaged app.
+
+The initial target is glibc-based Linux x86_64. Ubuntu/Debian, Fedora and Arch,
+GNOME/KDE, X11/Wayland, and GPU driver combinations require runtime testing.
+The host must support Chromium sandboxing; Nflix refuses sandbox-disabling launch flags.
+ARM64, musl-based distributions, Flatpak and Snap are not validated targets.
+Do not advertise universal Linux compatibility.
+
+Tag builds validate the version and publish a prerelease. They do not establish
+playback compatibility. Test a protected Netflix title in each final package
+before promoting a release.
+
+## Development
+
+`npm test` checks navigation trust, web permissions and persisted window state.
+`NFLIX_USER_DATA=/absolute/test/profile npm start -- --smoke-test` performs an
+isolated visible launch, checks renderer security settings, saves a screenshot,
+and exits. Use a disposable profile, not an account-bearing profile.
+
+The previous Python/Qt implementation, including unfinished codec work and old
+packaging recipes, is preserved under `legacy/qt`. It is excluded from the
+Electron application and is no longer the active build path.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), and
+[third-party notices](THIRD_PARTY_NOTICES.md).
